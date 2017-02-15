@@ -1,0 +1,10 @@
+Issues 96, 74 - Regarding training new dataset
+
+Issue 86 - How much memory?
+
+While training display the image : 
+
+https://gist.github.com/htoyryla/b48e166212a04f0373f339549e3d9aae
+
+
+
