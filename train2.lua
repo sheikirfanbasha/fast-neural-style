@@ -78,6 +78,7 @@ cmd:option('-weight_decay', 0)
 -- Checkpointing
 cmd:option('-checkpoint_name', 'checkpoint')
 cmd:option('-checkpoint_every', 1000)
+cmd:option('-display_every', 50)
 cmd:option('-num_val_batches', 10)
 
 -- Backend options
@@ -286,15 +287,17 @@ cmd:option('-backend', 'cuda', 'cuda|opencl')
           epoch, t, opt.num_iterations, loss[1]), optim_state.learningRate)
 
 
-    if t % 50 == 0 then
+    if t % opt.display_every == 0 then
        collectgarbage()
 
        --local output = net.output:double()
 
        local img_out = model:forward(test_img_pre:type(dtype))
-       img_out = preprocess.deprocess(img_out)
-       img_out = torch.clamp(img_out,0,1)
-       if use_display then 
+       img_out1 = preprocess.deprocess(img_out)
+       img_out = torch.clamp(img_out1,0,1)
+       if use_display then
+        print("printing ....")
+        image.save("temp-"..t..".png", img_out1[1])
         display.image(img_out, {win=0, width=512, title="Iteration " .. t})
        end
     end
