@@ -2,7 +2,7 @@ require 'torch'
 require 'nn'
 
 local ContentLoss, parent = torch.class('nn.ContentLoss', 'nn.Module')
-
+local counter = 1;
 
 --[[
 Module to compute content loss in-place.
@@ -38,8 +38,19 @@ end
 
 function ContentLoss:updateOutput(input)
   if self.mode == 'capture' then
+    print("****** Saving Content extracted image");
+    local m_out = (input:float())[1]
+    local img_ou=image.toDisplayTensor{input=m_out, padding=2, zoom=4};
+    image.save("contentExImg.png", img_ou)
     self.target:resizeAs(input):copy(input)
   elseif self.mode == 'loss' then
+    if counter % 50 == 0 then
+      print("****** Saving loss of Content extracted image "..counter);
+      local m_out = (input:float())[1]
+      local img_ou=image.toDisplayTensor{input=m_out, padding=2, zoom=4};
+      image.save("contentExImg"..counter..".png", img_ou)
+    end
+    counter = counter + 1
     self.loss = self.strength * self.crit:forward(input, self.target)
   end
   self.output = input
