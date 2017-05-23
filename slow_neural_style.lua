@@ -118,7 +118,8 @@ local function main()
   end
   tv:type(dtype)
 
-  local img = torch.randn(#content_image):type(dtype)
+  -- local img = torch.randn(#content_image):type(dtype)
+  local img = content_image:clone():type(dtype)
   
   -- Callback function for optim methods
   local f_calls = 0
@@ -128,7 +129,7 @@ local function main()
     local loss = crit:forward(tv_out, {})
     local grad_tv_out = crit:updateGradInput(tv_out, {})
     local grad_x = tv:backward(x, grad_tv_out)
- 
+
     if opt.print_every > 0 and f_calls % opt.print_every == 0 then
       print(string.format('Iteration %d, loss = %f', f_calls, loss))
     end
