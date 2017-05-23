@@ -6,8 +6,9 @@ require 'fast_neural_style.GramMatrix'
 local StyleLoss, parent = torch.class('nn.StyleLoss', 'nn.Module')
 
 
-function StyleLoss:__init(strength, loss_type, agg_type)
+function StyleLoss:__init(strength, loss_type, agg_type, index)
   parent.__init(self)
+  self.index = index
   self.agg_type = agg_type or 'gram'
   self.strength = strength or 1.0
   self.loss = 0
@@ -35,11 +36,30 @@ function StyleLoss:__init(strength, loss_type, agg_type)
   end
 end
 
+function applyForAllFilters(img1)
+  for filter=1,img1[1]:size()[1], 1 do
+    for u=1,img1[1]:size()[2] * 0.5, 1 do
+      for v=1,img1[1]:size()[3], 1 do
+        img1[1][filter][u][v]=0
+      end
+    end
+  end
+  return img1
+end
 
 function StyleLoss:updateOutput(input)
+  if self.mode == 'capture' then
+    local o=image.toDisplayTensor{input=input[1], zoom=8}
+    image.save('ori_style_feature_layer'..self.index..".png", o);
+    input = applyForAllFilters(input)
+    local filt=image.toDisplayTensor{input=input[1], zoom=8}
+    image.save('ori_filtered_style_feature_layer'..self.index..".png", filt);
+  end
   self.agg_out = self.agg:forward(input)
   if self.mode == 'capture' then
+    print("****saving gram matrix output for the style representation***")
     self.target:resizeAs(self.agg_out):copy(self.agg_out)
+    torch.save('gram_mat_rep_st_layer'..self.index, self.target);
   elseif self.mode == 'loss' then
     local target = self.target
     if self.agg_out:size(1) > 1 and self.target:size(1) == 1 then
