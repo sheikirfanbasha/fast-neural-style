@@ -36,6 +36,18 @@ function StyleLoss:__init(strength, loss_type, agg_type, index)
   end
 end
 
+
+function applyContentMaskForFilters(img1)
+  local fontli = image.load('images/content/fontli.jpg')
+  fontli = image.scale(fontli, img1[1]:size()[2])
+  local r_fontli = image.rgb2y(fontli)
+  for filter=1,img1[1]:size()[1], 1 do
+    img1[1][filter] = torch.add(img1[1][filter]:double(),r_fontli[1]:double())
+    img1[1][filter][img1[1][filter]:gt(1)] = 1
+  end
+  return img1
+end
+
 function applyForAllFilters(img1)
   for filter=1,img1[1]:size()[1], 1 do
     for u=1,img1[1]:size()[2] * 0.5, 1 do
@@ -50,10 +62,12 @@ end
 function StyleLoss:updateOutput(input)
   if self.mode == 'capture' then
     local o=image.toDisplayTensor{input=input[1], zoom=8}
+    torch.save('style_extract'..self.index, input)
     image.save('ori_style_feature_layer'..self.index..".png", o);
-    input = applyForAllFilters(input)
+    -- input = applyForAllFilters(input)
+    input = applyContentMaskForFilters(input)
     local filt=image.toDisplayTensor{input=input[1], zoom=8}
-    image.save('ori_filtered_style_feature_layer'..self.index..".png", filt);
+     image.save('ori_filtered_style_feature_layer'..self.index..".png", filt);
   end
   self.agg_out = self.agg:forward(input)
   if self.mode == 'capture' then
